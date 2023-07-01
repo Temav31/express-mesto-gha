@@ -2,7 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const react = require("eslint-plugin-import/config/react");
-const userRouter = require('./routes/users');
+
+// const router = require('./routes/index');
+
+const User = require("./models/user")
+// const
 
 const app = express();
 app.use(express.json());
@@ -20,13 +24,37 @@ app.use(express.json());
 //     };
 //     next();
 // });
-
-app.use('/users', userRouter);
-
-app.use('/*', (req, res) => {
-  res.status(ERROR_NOT_FOUND).send({ message: 'Страница не найдена' });
+const users = [];
+let id = 0;
+app.get("/users", (req, res) => {
+  console.log("Слушаю /users");
+  res.send(users);
 });
+app.get("/users/:id", (req, res) => {
+  console.log(req.params.id);
+  console.log("hi");
 
+  const { id } = req.params;
+  const user = users.find((item) => item.id == Number(id));
+
+  if(user){
+  return res.status(200).send([users]);
+  }
+  return res.status(404).send({ message: 'User not found' });
+});
+app.post('/users', (req, res) => {
+  console.log("req.body", req.body);
+
+  id += 1;
+  const newUser = {
+    id,
+    ...req.body,
+  };
+  users.push(newUser);
+
+  res.status(201).send(newUser);
+});
+// app.use(bodyParser.json());
 app.listen(PORT, () => {
   console.log(`Порт: ${PORT}`);
 });
