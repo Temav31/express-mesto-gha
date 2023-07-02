@@ -1,7 +1,13 @@
-const router = require('express').Router();
+const router = require("express").Router();
+const { ERROR_NOT_FOUND } = require("../utils/errors");
 // импорт из файла
-const userRoutes = require('');
+const user = require("./users");
+const card = require("./cards");
 // обозначение роутов
-router.use(userRoutes);
+router.use("/users", user);
+router.use("/cards", card);
+router.use("/*", (req, res) => {
+  res.status(ERROR_NOT_FOUND).send({ message: "Страницы не существует" });
+});
 // экспорт
 module.exports = router;

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+// создание модели карточки
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -26,7 +26,7 @@ const cardSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-  },
+  }
 });
-
+// экспорт
 module.exports = mongoose.model('card', cardSchema);

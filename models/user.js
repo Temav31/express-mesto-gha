@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+// создание модели пользователя
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -16,7 +16,6 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
-  },
+  }
 });
-
 module.exports = mongoose.model('user', userSchema);
