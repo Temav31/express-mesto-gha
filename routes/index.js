@@ -6,6 +6,7 @@ const card = require("./cards");
 // обозначение роутов
 router.use("/users", user);
 router.use("/cards", card);
+// обработка другого пути
 router.use("/*", (req, res) => {
   res.status(ERROR_NOT_FOUND).send({ message: "Страницы не существует" });
 });
