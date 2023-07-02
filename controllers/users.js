@@ -123,4 +123,5 @@ module.exports = {
   createUser,
   getUserById,
   UpdateProfile,
+  UpdateAvatar
 };
