@@ -76,13 +76,11 @@ const deleteLikeCard = (req, res) => {
       } else if (err.message === "Not Found") {
         res.status(ERROR_NOT_FOUND).send({ message: "Такой карточки нет" });
       } else {
-        res
-          .status(ERROR_SERVER)
-          .send({
-            message: "Ошибка сервера",
-            err: err.message,
-            stack: err.stack,
-          });
+        res.status(ERROR_SERVER).send({
+          message: "Ошибка сервера",
+          err: err.message,
+          stack: err.stack,
+        });
       }
     });
 };
@@ -92,7 +90,7 @@ const deleteCard = (req, res) => {
     .orFail(() => new Error("Not found"))
     .then(() => res.status(201).send({ message: "Карточка удалена" }))
     .catch((err) => {
-    // обработка ошибок
+      // обработка ошибок
       if (err.name === "Not found") {
         res.status(ERROR_NOT_FOUND).send({
           message: "Такой карточки нет",
