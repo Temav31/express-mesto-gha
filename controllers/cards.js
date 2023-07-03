@@ -44,7 +44,7 @@ const likeCard = (req, res) => {
     { new: true }
   )
     .orFail(() => new Error("Not Found"))
-    .then((card) => res.status(201).send(card))
+    .then((card) => res.status(200).send(card))
     // обработка ошибок
     .catch((err) => {
       if (err.name === "CastError") {
@@ -68,7 +68,7 @@ const deleteLikeCard = (req, res) => {
     { new: true }
   )
     .orFail(() => new Error("Not Found"))
-    .then((card) => res.status(201).send(card))
+    .then((card) => res.status(200).send(card))
     // обработка ошибок
     .catch((err) => {
       if (err.name === "CastError") {

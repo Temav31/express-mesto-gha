@@ -15,7 +15,11 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
+    validate: {
+      validator: (v) => validator.isURL(v),
+      message: 'Некорректный URL',
+    },
     required: true,
-  }
+  },{ versionKey: false }
 });
 module.exports = mongoose.model('user', userSchema);

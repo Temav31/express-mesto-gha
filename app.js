@@ -14,7 +14,7 @@ app.use(router);
 // хардкодим пользователя
 app.use((req, res, next) => {
   req.user = {
-    _id: '64a1368d2318b016942483e6',
+    _id: "64a1368d2318b016942483e6",
   };
   next();
 });
