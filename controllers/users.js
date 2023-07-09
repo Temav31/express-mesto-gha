@@ -5,7 +5,6 @@ const jsonWebToken = require("jsonwebtoken");
 const {
     ERROR_PASSWORD,
 } = require("../utils/errors");
-// const AccessError = require("../utils/errors/AccessError");
 const ConflictError = require("../utils/errors/ConflictError");
 const DataError = require("../utils/errors/DataError");
 const FoundError = require("../utils/errors/FoundError");

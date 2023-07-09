@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { ERROR_NOT_FOUND } = require("../utils/errors");
+const FoundError = require("../utils/errors/FoundError");
 const { celebrate, Joi, errors } = require("celebrate");
 const { pattern } = require("../utils/constants");
 // импорт из файла
@@ -7,7 +7,7 @@ const user = require("./users");
 const card = require("./cards");
 const { createUser, login } = require("../controllers/users");
 const auth = require("../middlwares/auth");
-// регистрация и аутентификация
+// регистрация
 router.post(
     "/signup",
     celebrate({
@@ -21,6 +21,7 @@ router.post(
     }),
     createUser
 );
+// аутенфикация
 router.post(
     "/signin",
     celebrate({
@@ -37,8 +38,8 @@ router.use("/users", user);
 router.use("/cards", card);
 router.use(errors());
 // обработка другого пути
-router.use("/*", (req, res) => {
-    res.status(ERROR_NOT_FOUND).send({ message: "Страницы не существует" });
+router.use("/*", (req, res, next) => {
+    next(new FoundError(`Страницы не существует`));
 });
 // экспорт
 module.exports = router;

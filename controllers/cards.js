@@ -27,8 +27,7 @@ const createCard = (req, res, next) => {
 // поставить лайк карточке
 const likeCard = (req, res, next) => {
     Card.findByIdAndUpdate(
-            req.params.cardId, { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-            { new: true }
+            req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true }
         )
         .orFail(() => new Error("Not Found"))
         .then((card) => res.status(200).send(card))
@@ -46,8 +45,7 @@ const likeCard = (req, res, next) => {
 // убрать лайк карточке
 const deleteLikeCard = (req, res, next) => {
     Card.findByIdAndUpdate(
-            req.params.cardId, { $pull: { likes: req.user._id } }, // убрать _id из массива
-            { new: true }
+            req.params.cardId, { $pull: { likes: req.user._id } }, { new: true }
         )
         .orFail(() => new Error("Not Found"))
         .then((card) => res.status(200).send(card))
