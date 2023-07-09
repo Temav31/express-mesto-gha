@@ -1,43 +1,31 @@
 const Card = require("../models/card");
 // ошибки для проверки ошибок
-const {
-    ERROR_INVALID_DATA,
-    ERROR_NOT_FOUND,
-    ERROR_SERVER,
-} = require("../utils/errors");
+const AccessError = require("../utils/errors/AccessError");
+const FoundError = require("../utils/errors/FoundError");
+const ServerError = require("../utils/errors/ServerError");
 // получение карточек
-const getCard = (req, res) => {
-    console.log("hi");
+const getCard = (req, res, next) => {
     Card.find({})
         .then((cards) => res.status(200).send(cards))
-        .catch((err) =>
-            res.status(404).send({
-                maessege: "Ошибка сервера",
-                err: err.message,
-                stack: err.stack,
-            })
-        );
+        .catch(() => next(new ServerError()));
 };
 // создать карточку
-const createCard = (req, res) => {
-    Card.create(req.body)
-        .then((cards) => res.status(201).send(cards))
+const createCard = (req, res, next) => {
+    const { _id } = req.user;
+    const { name, link } = req.body;
+    // создание карточки и определяет кто пользователь
+    Card.create({ name, link, owner: _id })
+        .then((card) => res.status(201).send(card))
         .catch((err) => {
             if (err.name === "ValidationError") {
-                res.status(ERROR_INVALID_DATA).send({
-                    message: "Некоректные данные",
-                });
+                next(new DataError("Некоректные данные"));
             } else {
-                res.status(ERROR_SERVER).send({
-                    message: "Ошибка сервера",
-                    err: err.message,
-                    stack: err.stack,
-                });
+                next(new ServerError());
             }
         });
 };
 // поставить лайк карточке
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
     Card.findByIdAndUpdate(
             req.params.cardId, { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
             { new: true }
@@ -46,21 +34,17 @@ const likeCard = (req, res) => {
         .then((card) => res.status(200).send(card))
         // обработка ошибок
         .catch((err) => {
-            if (err.name === "CastError") {
-                res.status(ERROR_INVALID_DATA).send({ message: "Некоректные данные" });
-            } else if (err.message === "Not Found") {
-                res.status(ERROR_NOT_FOUND).send({ message: "Такой карточки нет" });
+            if (err.message === "Not found") {
+                next(new FoundError(`Такого пользователя нет`));
+            } else if (err.name === "CastError") {
+                next(new DataError("Некоректные данные"));
             } else {
-                res.status(ERROR_SERVER).send({
-                    message: "Ошибка сервера",
-                    err: err.message,
-                    stack: err.stack,
-                });
+                next(new ServerError());
             }
         });
 };
 // убрать лайк карточке
-const deleteLikeCard = (req, res) => {
+const deleteLikeCard = (req, res, next) => {
     Card.findByIdAndUpdate(
             req.params.cardId, { $pull: { likes: req.user._id } }, // убрать _id из массива
             { new: true }
@@ -69,38 +53,38 @@ const deleteLikeCard = (req, res) => {
         .then((card) => res.status(200).send(card))
         // обработка ошибок
         .catch((err) => {
-            if (err.name === "CastError") {
-                res.status(ERROR_INVALID_DATA).send({ message: "Некоректные данные" });
-            } else if (err.message === "Not Found") {
-                res.status(ERROR_NOT_FOUND).send({ message: "Такой карточки нет" });
+            if (err.message === "Not found") {
+                next(new FoundError(`Такого пользователя нет`));
+            } else if (err.name === "CastError") {
+                next(new DataError("Некоректные данные"));
             } else {
-                res.status(ERROR_SERVER).send({
-                    message: "Ошибка сервера",
-                    err: err.message,
-                    stack: err.stack,
-                });
+                next(new ServerError());
             }
         });
 };
 // удаление карточки
-const deleteCard = (req, res) => {
-    Card.findByIdAndRemove(req.params.id)
+const deleteCard = (req, res, next) => {
+    const user = req.user._id;
+    Card.findById(req.params.id)
         .orFail(() => new Error("Not found"))
-        .then(() => res.status(201).send({ message: "Карточка удалена" }))
+        .then((card) => {
+            if (!card) {
+                return next(new FoundError(`Такого пользователя нет`));
+            } else if (card.owner.toString() !== user) {
+                return next(new AccessError("Вы не можете удалить не свою карточку"));
+            }
+            return card.deleteOne().then(() => {
+                    res.status(201).send({ message: "Карточка удалена" });
+                })
+                .catch((err) => next(err));
+        })
         .catch((err) => {
-            // обработка ошибок
-            if (err.name === "CastError") {
-                res.status(ERROR_INVALID_DATA).send({ message: "Некоректные данные" });
-            } else if (err.name === "Not found") {
-                res.status(ERROR_NOT_FOUND).send({
-                    message: "Такой карточки нет",
-                });
+            if (err.message === "Not found") {
+                next(new FoundError(`Такого пользователя нет`));
+            } else if (err.name === "CastError") {
+                next(new DataError("Некоректные данные"));
             } else {
-                res.status(ERROR_SERVER).send({
-                    message: "Ошибка сервера",
-                    err: err.message,
-                    stack: err.stack,
-                });
+                next(new ServerError());
             }
         });
 };
