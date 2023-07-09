@@ -2,9 +2,7 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jsonWebToken = require("jsonwebtoken");
 // ошибки для проверки ошибок
-const {
-    ERROR_PASSWORD,
-} = require("../utils/errors");
+const { ERROR_PASSWORD } = require("../utils/errors");
 const FoundError = require("../utils/errors/FoundError");
 const ConflictError = require("../utils/errors/ConflictError");
 const DataError = require("../utils/errors/DataError");
@@ -26,6 +24,8 @@ const createUser = (req, res, next) => {
         .catch((err) => {
             if (err.code === 11000) {
                 next(new ConflictError("Такого пользователя не существует"));
+            } else if (err.name === "ValidationError") {
+                next(new DataError("Некоректные данные"));
             } else {
                 next(new ServerError());
             }
