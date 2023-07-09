@@ -5,11 +5,11 @@ const jsonWebToken = require("jsonwebtoken");
 const {
     ERROR_PASSWORD,
 } = require("../utils/errors");
+const FoundError = require("../utils/errors/FoundError");
 const ConflictError = require("../utils/errors/ConflictError");
 const DataError = require("../utils/errors/DataError");
-const FoundError = require("../utils/errors/FoundError");
-const ServerError = require("../utils/errors/ServerError");
 const SignInError = require("../utils/errors/SignInError");
+const ServerError = require("../utils/errors/ServerError");
 // регистрация
 const createUser = (req, res, next) => {
     const { name, about, avatar, email, password } = req.body;

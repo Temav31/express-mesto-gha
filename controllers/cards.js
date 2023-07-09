@@ -2,6 +2,7 @@ const Card = require("../models/card");
 // ошибки для проверки ошибок
 const AccessError = require("../utils/errors/AccessError");
 const FoundError = require("../utils/errors/FoundError");
+const DataError = require("../utils/errors/DataError");
 const ServerError = require("../utils/errors/ServerError");
 // получение карточек
 const getCard = (req, res, next) => {
