@@ -15,10 +15,10 @@ const validation = celebrate({
     }),
 });
 // обработка путей
+router.get("/me", getCurrentUser);
 router.patch("/me", validation, UpdateProfile);
 router.patch("/me/avatar", validation, UpdateAvatar);
 router.get("/", getUsers);
 router.get("/:id", validation, getUserById);
-router.get("/me", getCurrentUser);
 // экспорт роута
 module.exports = router;

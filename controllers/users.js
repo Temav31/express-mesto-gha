@@ -83,7 +83,12 @@ const getUserById = (req, res, next) => {
     // console.log("hi");
     User.findById(req.params.id)
         .orFail(() => new Error("Not found"))
-        .then((user) => res.status(200).send(user))
+        .then((user) => {
+            if (!user) {
+                next(new FoundError("Такого пользователя нет"));
+            }
+            res.status(200).send(user);
+        })
         // обработка ошибок
         .catch((err) => {
             // console.log("err.message");
@@ -98,8 +103,16 @@ const getUserById = (req, res, next) => {
 };
 // получить текущего пользователя
 const getCurrentUser = (req, res, next) => {
-    req.params.id = req.user.id;
-    getUserById(req, res, next);
+    const id = req.user._id;
+    console.log("hi");
+    User.findById(id)
+        .then((user) => {
+            if (!user) {
+                next(new FoundError("Такого пользователя нет"));
+            }
+            res.status(200).send(user);
+        })
+        .catch(next);
 };
 // обновление аватара
 const UpdateAvatar = (req, res, next) => {

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const validator = require('validator');
+const isEmail = require('validator/lib/isEmail');
 const avatarPattern = require("../utils/constants");
 // создание модели пользователя
 const userSchema = new mongoose.Schema({
@@ -42,10 +42,10 @@ const userSchema = new mongoose.Schema({
     },
     // { versionKey: false }
 });
-userSchema.methods.toJSON = function() {
-    const user = this.toObject();
-    delete user.password;
-    return user;
-};
+// userSchema.methods.toJSON = function() {
+//     const user = this.toObject();
+//     delete user.password;
+//     return user;
+// };
 // экспорт
 module.exports = mongoose.model("user", userSchema);
