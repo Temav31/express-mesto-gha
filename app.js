@@ -15,13 +15,6 @@ mongoose.connect("mongodb://127.0.0.1:27017/mestodb", {
 app.use(cookieParser());
 app.use(router);
 app.use(errorHandler);
-// хардкодим пользователя
-app.use((req, res, next) => {
-    req.user = {
-        _id: "64a1368d2318b016942483e6",
-    };
-    next();
-});
 // порт
 app.listen(PORT, () => {
     console.log(`Порт: ${PORT}`);
