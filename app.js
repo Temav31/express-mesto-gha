@@ -20,4 +20,4 @@ app.use(errorHandler);
 // порт
 app.listen(PORT, () => {
     console.log(`Порт: ${PORT}`);
-});
+})

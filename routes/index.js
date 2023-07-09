@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const FoundError = require("../utils/errors/FoundError");
 const { celebrate, Joi, errors } = require("celebrate");
+const FoundError = require("../utils/errors/FoundError");
 const { pattern } = require("../utils/constants");
 // импорт из файла
 const user = require("./users");
@@ -12,25 +12,25 @@ router.post(
     "/signup",
     celebrate({
         body: Joi.object().keys({
-            email: Joi.string().required().email().min(3),
-            password: Joi.string().required().min(3),
+            email: Joi.string().required().email(),
+            password: Joi.string().required(),
             name: Joi.string().min(2).max(30),
             about: Joi.string().min(2).max(30),
             avatar: Joi.string().pattern(pattern),
         }),
     }),
-    createUser
+    createUser,
 );
 // аутенфикация
 router.post(
     "/signin",
     celebrate({
         body: Joi.object().keys({
-            email: Joi.string().required().email().min(3),
-            password: Joi.string().required().min(3),
+            email: Joi.string().required().email(),
+            password: Joi.string().required(),
         }),
     }),
-    login
+    login,
 );
 router.use(auth);
 // обозначение роутов
@@ -39,7 +39,7 @@ router.use("/cards", card);
 router.use(errors());
 // обработка другого пути
 router.use("/*", (req, res, next) => {
-    next(new FoundError(`Страницы не существует`));
+    next(new FoundError("Страницы не существует"));
 });
 // экспорт
 module.exports = router;

@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const avatarPattern = require("../utils/constants");
 // создание модели карточки
 const cardSchema = new mongoose.Schema({
     name: {
@@ -11,20 +12,20 @@ const cardSchema = new mongoose.Schema({
         type: String,
         required: true,
         validate: {
-            validator: (v) => validator.isURL(v),
-            message: 'Введите ссылку',
+            validator: (v) => avatarPattern.test(v),
+            message: "Введите ссылку",
         },
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        ref: "user",
         required: true,
     },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        ref: "user",
         default: [],
-    }, ],
+    }],
     createdAt: {
         type: Date,
         default: Date.now,
@@ -32,4 +33,4 @@ const cardSchema = new mongoose.Schema({
     // { versionKey: false }
 });
 // экспорт
-module.exports = mongoose.model('card', cardSchema);
+module.exports = mongoose.model("card", cardSchema);

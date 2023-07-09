@@ -1,14 +1,18 @@
 const jwt = require("jsonwebtoken");
+const SignInError = require("../utils/errors/SignInError");
+// мидлвара
 const auth = (req, res, next) => {
     const token = req.cookies.jwt;
     let payload;
     try {
+        if (!token) {
+            next(new SignInError("Неправильная авторизация"));
+        }
         payload = jwt.verify(token, "SECRET");
-        console.log(payload);
     } catch (err) {
-        next(err);
+        next(new SignInError("Неправильная авторизация"));
     }
     req.user = payload;
-    next();
+    return next();
 };
 module.exports = auth;

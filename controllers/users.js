@@ -1,6 +1,6 @@
-const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jsonWebToken = require("jsonwebtoken");
+const User = require("../models/user");
 // ошибки для проверки ошибок
 const { ERROR_PASSWORD } = require("../utils/errors");
 const FoundError = require("../utils/errors/FoundError");
@@ -88,7 +88,7 @@ const getUserById = (req, res, next) => {
         .catch((err) => {
             // console.log("err.message");
             if (err.message === "Not found") {
-                next(new FoundError(`Такого пользователя нет`));
+                next(new FoundError("Такого пользователя нет"));
             } else if (err.name === "CastError") {
                 next(new DataError("Некоректные данные"));
             } else {
@@ -114,7 +114,7 @@ const UpdateAvatar = (req, res, next) => {
             if (err.name === "ValidationError") {
                 next(new DataError("Некоректные данные"));
             } else if (err.message === "Not Found") {
-                next(new FoundError(`Такого пользователя нет`));
+                next(new FoundError("Такого пользователя нет"));
             } else {
                 next(new ServerError());
             }
@@ -136,9 +136,8 @@ const UpdateProfile = (req, res, next) => {
         .catch((err) => {
             if (err.name === "ValidationError") {
                 next(new DataError("Некоректные данные"));
-                next(new FoundError(`Такого пользователя нет`));
             } else if (err.message === "Not Found") {
-                next(new FoundError(`Такого пользователя нет`));
+                next(new FoundError("Такого пользователя нет"));
             } else {
                 next(new ServerError());
             }

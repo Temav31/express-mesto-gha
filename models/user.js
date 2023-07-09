@@ -1,28 +1,28 @@
-const mongoose = require('mongoose');
-const avatarPattern = require('../utils/constants');
-const isEmail = require('validator/lib/isEmail');
+const mongoose = require("mongoose");
+const validator = require('validator');
+const avatarPattern = require("../utils/constants");
 // создание модели пользователя
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        default: 'Жак-Ив Кусто',
+        default: "Жак-Ив Кусто",
         required: true,
         minlength: 2,
         maxlength: 30,
     },
     about: {
         type: String,
-        default: 'Исследователь',
+        default: "Исследователь",
         required: true,
         minlength: 2,
         maxlength: 30,
     },
     avatar: {
         type: String,
-        default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+        default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
         validate: {
             validator: (v) => avatarPattern.test(v),
-            message: 'Некорректный URL',
+            message: "Некорректный URL",
         },
         required: true,
     },
@@ -31,8 +31,8 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
         validate: {
-            validator: isEmail,
-            message: 'Некорректная почта',
+            validator: (v) => validator.isEmail(v),
+            message: "Некорректная почта",
         },
     },
     password: {
@@ -48,4 +48,4 @@ userSchema.methods.toJSON = function() {
     return user;
 };
 // экспорт
-module.exports = mongoose.model('user', userSchema);
+module.exports = mongoose.model("user", userSchema);

@@ -27,15 +27,13 @@ const createCard = (req, res, next) => {
 };
 // поставить лайк карточке
 const likeCard = (req, res, next) => {
-    Card.findByIdAndUpdate(
-            req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true }
-        )
+    Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
         .orFail(() => new Error("Not Found"))
         .then((card) => res.status(200).send(card))
         // обработка ошибок
         .catch((err) => {
             if (err.message === "Not found") {
-                next(new FoundError(`Такого пользователя нет`));
+                next(new FoundError("Такого пользователя нет"));
             } else if (err.name === "CastError") {
                 next(new DataError("Некоректные данные"));
             } else {
@@ -45,15 +43,13 @@ const likeCard = (req, res, next) => {
 };
 // убрать лайк карточке
 const deleteLikeCard = (req, res, next) => {
-    Card.findByIdAndUpdate(
-            req.params.cardId, { $pull: { likes: req.user._id } }, { new: true }
-        )
+    Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
         .orFail(() => new Error("Not Found"))
         .then((card) => res.status(200).send(card))
         // обработка ошибок
         .catch((err) => {
             if (err.message === "Not found") {
-                next(new FoundError(`Такого пользователя нет`));
+                next(new FoundError("Такого пользователя нет"));
             } else if (err.name === "CastError") {
                 next(new DataError("Некоректные данные"));
             } else {
@@ -68,18 +64,21 @@ const deleteCard = (req, res, next) => {
         .orFail(() => new Error("Not found"))
         .then((card) => {
             if (!card) {
-                return next(new FoundError(`Такого пользователя нет`));
-            } else if (card.owner.toString() !== user) {
+                return next(new FoundError("Такого пользователя нет"));
+            }
+            if (card.owner.toString() !== user) {
                 return next(new AccessError("Вы не можете удалить не свою карточку"));
             }
-            return card.deleteOne().then(() => {
+            return card
+                .deleteOne()
+                .then(() => {
                     res.status(201).send({ message: "Карточка удалена" });
                 })
                 .catch((err) => next(err));
         })
         .catch((err) => {
             if (err.message === "Not found") {
-                next(new FoundError(`Такого пользователя нет`));
+                next(new FoundError("Такого пользователя нет"));
             } else if (err.name === "CastError") {
                 next(new DataError("Некоректные данные"));
             } else {

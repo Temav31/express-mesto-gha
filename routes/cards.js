@@ -12,7 +12,7 @@ const {
 // валидация
 const validation = celebrate({
     params: Joi.object().keys({
-        cardId: Joi.string().length(24).required(),
+        cardId: Joi.string().length(24).required().hex(),
     }),
 });
 // обработка путей
