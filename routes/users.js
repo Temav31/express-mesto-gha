@@ -1,6 +1,6 @@
-const router = require("express").Router();
-const { celebrate, Joi } = require("celebrate");
-const { pattern } = require("../utils/constants");
+const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
+const { pattern } = require('../utils/constants');
 //  импорт обработчиков
 const {
   getUsers,
@@ -8,37 +8,37 @@ const {
   UpdateProfile,
   UpdateAvatar,
   getCurrentUser,
-} = require("../controllers/users");
+} = require('../controllers/users');
 // обработка путей
-router.get("/me", getCurrentUser);
+router.get('/me', getCurrentUser);
 router.patch(
-  "/me",
+  '/me',
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
       about: Joi.string().required().min(2).max(30),
     }),
   }),
-  UpdateProfile
+  UpdateProfile,
 );
 router.patch(
-  "/me/avatar",
+  '/me/avatar',
   celebrate({
     body: Joi.object().keys({
       avatar: Joi.string().required().pattern(pattern),
     }),
   }),
-  UpdateAvatar
+  UpdateAvatar,
 );
-router.get("/", getUsers);
+router.get('/', getUsers);
 router.get(
-  "/:id",
+  '/:id',
   celebrate({
     params: Joi.object().keys({
       id: Joi.string().required().length(24),
     }),
   }),
-  getUserById
+  getUserById,
 );
 // экспорт роута
 module.exports = router;
