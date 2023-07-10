@@ -91,7 +91,7 @@ module.exports.login = (req, res, next) => {
 module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => next(new ServerError()));
+    .catch((err) => next(err));
 };
 // получение пользователей по id
 module.exports.getUserById = (req, res, next) => {
@@ -111,10 +111,10 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 // получить текущего пользователя
-module.exports.getCurrentUser = (req, res, next) => {
-  req.params.id = req.user._id;
-  module.exports.getUserById(req, res, next);
-};
+// module.exports.getCurrentUser = (req, res, next) => {
+//   req.params.id = req.user._id;
+
+// };
 // обновление аватара
 module.exports.UpdateAvatar = (req, res, next) => {
   const { image } = req.body;
