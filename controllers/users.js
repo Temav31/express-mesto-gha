@@ -26,6 +26,7 @@ const createUser = (req, res, next) => {
             });
         })
         .catch((err) => {
+            console.log("hi");
             if (err.code === 11000) {
                 next(new ConflictError("Такого пользователя не существует"));
             } else if (err.name === "ValidationError") {
