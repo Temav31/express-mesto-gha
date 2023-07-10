@@ -112,20 +112,8 @@ module.exports.getUserById = (req, res, next) => {
 };
 // получить текущего пользователя
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
-    .then((user) => {
-      if (!user) {
-        throw new FoundError('Пользователь не найден');
-      }
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new DataError('Некоректные данные'));
-      } else if (err.message === 'Not Found') {
-        next(new FoundError('Такого пользователя нет'));
-      } else next(err);
-    });
+  req.params.id = req.user._id;
+  module.exports.getUserById(req, res, next);
 };
 // обновление аватара
 module.exports.UpdateAvatar = (req, res, next) => {
