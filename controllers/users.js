@@ -2,7 +2,6 @@ const bcrypt = require("bcryptjs");
 const jsonWebToken = require("jsonwebtoken");
 const User = require("../models/user");
 // ошибки для проверки ошибок
-const { ERROR_PASSWORD } = require("../utils/errors");
 const FoundError = require("../utils/errors/FoundError");
 const ConflictError = require("../utils/errors/ConflictError");
 const DataError = require("../utils/errors/DataError");
@@ -40,7 +39,7 @@ const createUser = (req, res, next) => {
 };
 // аутентификация
 const login = (req, res, next) => {
-    // console.log("hi");
+    console.log("hi");
     const { email, password } = req.body;
     User.findOne({ email })
         .select("+password")
@@ -56,13 +55,13 @@ const login = (req, res, next) => {
                         const jwt = jsonWebToken.sign({
                                 _id: user._id,
                             },
-                            "SECRET", { expiresIn: "7d" }
+                            "SECRET", { expiresIn: "7d" },
                         );
                         // прикрепили к куке
                         res.cookie("jwt", jwt, {
                             maxAge: 360000 * 24 * 7,
                             httpOnly: true,
-                            // sameSite: true,
+                            sameSite: true,
                         });
                         res.send({ data: user.toJSON() });
                     } else {
@@ -74,9 +73,11 @@ const login = (req, res, next) => {
             console.log(err.name);
             if (err.message === "Неправильные данные") {
                 next(new ConflictError("Неправильные почта или пароль"));
-            } else if (err.name === "ValidationError") {
-                next(new DataError("Некоректные данные"));
-            } else {
+            }
+            // else if (err.name === "ValidationError") {
+            //     next(new SignInError("Некоректные данные"));
+            // }
+            else {
                 next(new ServerError());
             }
         });
