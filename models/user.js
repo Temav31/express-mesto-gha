@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const isEmail = require("validator/lib/isEmail");
 // const avatarPattern = require("../utils/constants");
 // создание модели пользователя
 const userSchema = new mongoose.Schema({
@@ -29,9 +30,13 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true,
+        // unique: true,
+        // validate: {
+        //     validator: (v) => validator.isEmail(v),
+        //     message: "Некорректная почта",
+        // },
         validate: {
-            validator: (v) => validator.isEmail(v),
+            validator: isEmail,
             message: "Некорректная почта",
         },
     },
