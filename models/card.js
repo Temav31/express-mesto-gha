@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 const avatarPattern = require("../utils/constants");
 // создание модели карточки
 const cardSchema = new mongoose.Schema({
@@ -12,8 +13,8 @@ const cardSchema = new mongoose.Schema({
         type: String,
         required: true,
         validate: {
-            validator: (v) => avatarPattern.test(v),
-            message: "Введите ссылку",
+            validator: (url) => validator.isURL(url),
+            message: "Неправильная ссылка",
         },
     },
     owner: {
@@ -30,7 +31,6 @@ const cardSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-    // { versionKey: false }
 });
 // экспорт
 module.exports = mongoose.model("card", cardSchema);

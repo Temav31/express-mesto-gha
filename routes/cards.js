@@ -3,50 +3,50 @@ const { celebrate, Joi } = require("celebrate");
 const { pattern } = require("../utils/constants");
 //  импорт обработчиков
 const {
-    getCard,
-    createCard,
-    deleteLikeCard,
-    deleteCard,
-    likeCard,
+  getCard,
+  createCard,
+  deleteLikeCard,
+  deleteCard,
+  likeCard,
 } = require("../controllers/cards");
 // обработка путей
 router.get("/", getCard);
 router.put(
-    "/:cardId/likes",
-    celebrate({
-        params: Joi.object().keys({
-            cardId: Joi.string().length(24).required(),
-        }),
+  "/:cardId/likes",
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().length(24).required(),
     }),
-    likeCard,
+  }),
+  likeCard
 );
 router.post(
-    "/",
-    celebrate({
-        body: Joi.object().keys({
-            name: Joi.string().min(2).max(30).required(),
-            link: Joi.string().pattern(pattern).required(),
-        }),
+  "/",
+  celebrate({
+    body: Joi.object().keys({
+      name: Joi.string().min(2).max(30).required(),
+      link: Joi.string().pattern(pattern).required(),
     }),
-    createCard,
+  }),
+  createCard
 );
 router.delete(
-    "/:cardId/likes",
-    celebrate({
-        params: Joi.object().keys({
-            cardId: Joi.string().length(24).required(),
-        }),
+  "/:cardId/likes",
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().length(24).required(),
     }),
-    deleteLikeCard,
+  }),
+  deleteLikeCard
 );
 router.delete(
-    "/:cardId",
-    celebrate({
-        params: Joi.object().keys({
-            id: Joi.string().length(24).required(),
-        }),
+  "/:cardId",
+  celebrate({
+    params: Joi.object().keys({
+      id: Joi.string().length(24).required(),
     }),
-    deleteCard,
+  }),
+  deleteCard
 );
 // экспорт роута
 module.exports = router;

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-const isEmail = require("validator/lib/isEmail");
-// const avatarPattern = require("../utils/constants");
+const bcrypt = require("bcryptjs");
+const SignInError = require("../utils/errors/SignInError");
 // создание модели пользователя
 const userSchema = new mongoose.Schema({
     name: {
@@ -30,28 +30,32 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        // unique: true,
-        // validate: {
-        //     validator: (v) => validator.isEmail(v),
-        //     message: "Некорректная почта",
-        // },
+        unique: true,
         validate: {
-            validator: isEmail,
+            validator: (v) => validator.isEmail(v),
             message: "Некорректная почта",
         },
     },
     password: {
         type: String,
         required: true,
-        minlength: 8,
         select: false,
     },
-    // { versionKey: false }
 });
-userSchema.methods.toJSON = function() {
-    const user = this.toObject();
-    delete user.password;
-    return user;
+userSchema.statics.findUserByCredentials = function(email, password) {
+    return this.findOne({ email })
+        .select("+password")
+        .then((user) => {
+            if (!user) {
+                return Promise.reject(new SignInError("Неправильные данные"));
+            }
+            return bcrypt.compare(password, user.password).then((matched) => {
+                if (!matched) {
+                    return Promise.reject(new SignInError("Неправильные данные"));
+                }
+                return user;
+            });
+        });
 };
 // экспорт
 module.exports = mongoose.model("user", userSchema);

@@ -4,6 +4,6 @@
     "no-underscore-dangle": ["error", { "allow": ["_id"] }],
     "linebreak-style": [0, "error", "windows"],
     "quotes": ["error", "double"],
-    "indent": "off"
+    "no-console": "off"
   }
 }
