@@ -1,9 +1,8 @@
 module.exports = (err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res
-    .status(statusCode)
-    .send({
-      message: statusCode === 500 ? 'Произошла ошибка на сервере' : message,
-    });
-  next();
+  if (err.statusCode) {
+    res.status(err.statusCode).send({ massage: err.message });
+  } else {
+    res.status(500).send({ massage: 'Ошибка сервера' });
+    next();
+  }
 };

@@ -40,10 +40,10 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 });
-userSchema.methods.toJSON = function () {
-  const user = this.toObject();
-  delete user.password;
-  return user;
-};
+// userSchema.methods.toJSON = function () {
+//   const user = this.toObject();
+//   delete user.password;
+//   return user;
+// };
 // экспорт
 module.exports = mongoose.model('user', userSchema);
