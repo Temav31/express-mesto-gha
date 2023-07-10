@@ -3,13 +3,13 @@ const Card = require('../models/card');
 const AccessError = require('../utils/errors/AccessError');
 const FoundError = require('../utils/errors/FoundError');
 const DataError = require('../utils/errors/DataError');
-// const ServerError = require('../utils/errors/ServerError');
+const ServerError = require('../utils/errors/ServerError');
 // const { errors } = require('celebrate');
 // получение карточек
 module.exports.getCard = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
-    .catch(next);
+    .catch(() => next(new ServerError()));
 };
 // создать карточку
 module.exports.createCard = (req, res, next) => {
@@ -17,12 +17,12 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   // создание карточки и определяет кто пользователь
   Card.create({ name, link, owner })
-    .then((card) => res.status(200).send(card))
+    .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new DataError('Некоректные данные'));
       } else {
-        next(err);
+        next(new ServerError());
       }
     });
 };
