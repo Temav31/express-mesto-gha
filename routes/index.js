@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { celebrate, Joi, errors } = require("celebrate");
 const FoundError = require("../utils/errors/FoundError");
+const AccessError = require("../utils/errors/AccessError");
 const { pattern } = require("../utils/constants");
 // импорт из файла
 const user = require("./users");
@@ -39,7 +40,7 @@ router.use("/cards", card);
 router.use(errors());
 // обработка другого пути
 router.use("/*", (req, res, next) => {
-    next(new FoundError("Страницы не существует"));
+    next(new AccessError("Страницы не существует"));
 });
 // экспорт
 module.exports = router;

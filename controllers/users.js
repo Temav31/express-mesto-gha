@@ -73,7 +73,7 @@ const login = (req, res, next) => {
         .catch((err) => {
             console.log(err.name);
             if (err.message === "Неправильные данные") {
-                next(new SignInError("Неправильные почта или пароль"));
+                next(new ConflictError("Неправильные почта или пароль"));
             } else if (err.name === "ValidationError") {
                 next(new DataError("Некоректные данные"));
             } else {
