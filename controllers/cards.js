@@ -12,10 +12,10 @@ const getCard = (req, res, next) => {
 };
 // создать карточку
 const createCard = (req, res, next) => {
-    const { _id } = req.user;
+    const author = req.user._id;
     const { name, link } = req.body;
     // создание карточки и определяет кто пользователь
-    Card.create({ name, link, owner: _id })
+    Card.create({ name, link, owner: author })
         .then((card) => res.send(card))
         .catch((err) => {
             if (err.name === "ValidationError") {
@@ -69,8 +69,8 @@ const deleteCard = (req, res, next) => {
             if (card.owner.toString() !== user) {
                 return next(new AccessError("Вы не можете удалить не свою карточку"));
             }
-            return card
-                .deleteOne()
+            return Card
+                .deleteOne(card)
                 .then(() => {
                     res.send({ message: "Карточка удалена" });
                 })
