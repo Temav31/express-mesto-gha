@@ -64,10 +64,12 @@ module.exports.login = (req, res, next) => {
         .then((isValidUser) => {
           if (isValidUser) {
             // создлали jwt
-            const jwt = jsonWebToken.sign({
-              _id: user._id,
-            },
-              'SECRET', { expiresIn: '7d' },
+            const jwt = jsonWebToken.sign(
+              {
+                _id: user._id,
+              },
+              'SECRET',
+              { expiresIn: '7d' },
             );
             // прикрепили к куке
             res.cookie('jwt', jwt, {
@@ -75,7 +77,7 @@ module.exports.login = (req, res, next) => {
               httpOnly: true,
               sameSite: true,
             });
-            return res.send({ message: 'Авторизация прошла успешно' });
+            res.send({ message: 'Авторизация прошла успешно' });
           }
         });
     })
