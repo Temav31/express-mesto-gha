@@ -7,7 +7,7 @@ const ServerError = require("../utils/errors/ServerError");
 // получение карточек
 const getCard = (req, res, next) => {
     Card.find({})
-        .then((cards) => res.status(200).send(cards))
+        .then((cards) => res.send(cards))
         .catch(() => next(new ServerError()));
 };
 // создать карточку
@@ -16,7 +16,7 @@ const createCard = (req, res, next) => {
     const { name, link } = req.body;
     // создание карточки и определяет кто пользователь
     Card.create({ name, link, owner: _id })
-        .then((card) => res.status(201).send(card))
+        .then((card) => res.send(card))
         .catch((err) => {
             if (err.name === "ValidationError") {
                 next(new DataError("Некоректные данные"));
@@ -29,7 +29,7 @@ const createCard = (req, res, next) => {
 const likeCard = (req, res, next) => {
     Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
         .orFail(() => new Error("Not Found"))
-        .then((card) => res.status(200).send(card))
+        .then((card) => res.send(card))
         // обработка ошибок
         .catch((err) => {
             if (err.message === "Not found") {
@@ -45,7 +45,7 @@ const likeCard = (req, res, next) => {
 const deleteLikeCard = (req, res, next) => {
     Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
         .orFail(() => new Error("Not Found"))
-        .then((card) => res.status(200).send(card))
+        .then((card) => res.send(card))
         // обработка ошибок
         .catch((err) => {
             if (err.message === "Not found") {
@@ -72,7 +72,7 @@ const deleteCard = (req, res, next) => {
             return card
                 .deleteOne()
                 .then(() => {
-                    res.status(201).send({ message: "Карточка удалена" });
+                    res.send({ message: "Карточка удалена" });
                 })
                 .catch((err) => next(err));
         })

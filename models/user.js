@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const isEmail = require('validator/lib/isEmail');
-const avatarPattern = require("../utils/constants");
+const validator = require("validator");
+// const avatarPattern = require("../utils/constants");
 // создание модели пользователя
 const userSchema = new mongoose.Schema({
     name: {
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png",
         validate: {
-            validator: (v) => avatarPattern.test(v),
+            validator: (v) => validator.isURL(v),
             message: "Некорректный URL",
         },
         required: true,
@@ -38,14 +38,15 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
+        minlength: 8,
         select: false,
     },
     // { versionKey: false }
 });
-// userSchema.methods.toJSON = function() {
-//     const user = this.toObject();
-//     delete user.password;
-//     return user;
-// };
+userSchema.methods.toJSON = function() {
+    const user = this.toObject();
+    delete user.password;
+    return user;
+};
 // экспорт
 module.exports = mongoose.model("user", userSchema);

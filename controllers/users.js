@@ -14,12 +14,16 @@ const createUser = (req, res, next) => {
     bcrypt
         .hash(String(password), 10)
         .then((hashedPassword) => {
-            User.create({ name, about, avatar, email, password: hashedPassword })
-                .then((user) => {
-                    // console.log("hi");
-                    res.send({ data: user });
-                })
-                .catch(next);
+            User.create({
+                name,
+                about,
+                avatar,
+                email,
+                password: hashedPassword,
+            }).then((user) => {
+                // console.log("hi");
+                res.send({ data: user });
+            });
         })
         .catch((err) => {
             if (err.code === 11000) {
@@ -33,37 +37,39 @@ const createUser = (req, res, next) => {
 };
 // аутентификация
 const login = (req, res, next) => {
+    // console.log("hi");
     const { email, password } = req.body;
-    if (!email || !password) {
-        res.status(ERROR_PASSWORD).send({ message: "Введите данные" });
-        return 0;
-    }
     User.findOne({ email })
         .select("+password")
-        .orFail(() => new Error("Пользователь не найден"))
         .then((user) => {
-            bcrypt.compare(String(password), user.password).then((isValidUser) => {
-                if (isValidUser) {
-                    // создлали jwt
-                    const jwt = jsonWebToken.sign({
-                            _id: user._id,
-                        },
-                        "SECRET", { expiresIn: "7d" }
-                    );
-                    // прикрепили к куке
-                    res.cookie("jwt", jwt, {
-                        maxAge: 360000,
-                        httpOnly: true,
-                        sameSite: true,
-                    });
-                    res.send({ data: user.toJSON() });
-                } else {
-                    res.status(ERROR_PASSWORD).send({ message: "Неправильные данные" });
-                }
-            });
+            if (!user) {
+                return Promise.reject(new Error("Неправильные данные"));
+            }
+            return bcrypt
+                .compare(String(password), user.password)
+                .then((isValidUser) => {
+                    if (isValidUser) {
+                        // создлали jwt
+                        const jwt = jsonWebToken.sign({
+                                _id: user._id,
+                            },
+                            "SECRET", { expiresIn: "7d" }
+                        );
+                        // прикрепили к куке
+                        res.cookie("jwt", jwt, {
+                            maxAge: 360000 * 24 * 7,
+                            httpOnly: true,
+                            // sameSite: true,
+                        });
+                        res.send({ data: user.toJSON() });
+                    } else {
+                        res.send({ message: "Неправильные данные" });
+                    }
+                });
         })
         .catch((err) => {
-            if (err.name === "Пользователь не найден") {
+            console.log(err.name);
+            if (err.message === "Неправильные данные") {
                 next(new SignInError("Неправильные почта или пароль"));
             } else if (err.name === "ValidationError") {
                 next(new DataError("Некоректные данные"));
@@ -75,7 +81,7 @@ const login = (req, res, next) => {
 // получение пользователей
 const getUsers = (req, res, next) => {
     User.find({})
-        .then((users) => res.status(200).send(users))
+        .then((users) => res.send(users))
         .catch(() => next(new ServerError()));
 };
 // получение пользователей по id
@@ -84,10 +90,7 @@ const getUserById = (req, res, next) => {
     User.findById(req.params.id)
         .orFail(() => new Error("Not found"))
         .then((user) => {
-            if (!user) {
-                next(new FoundError("Такого пользователя нет"));
-            }
-            res.status(200).send(user);
+            res.send(user);
         })
         // обработка ошибок
         .catch((err) => {
@@ -103,16 +106,8 @@ const getUserById = (req, res, next) => {
 };
 // получить текущего пользователя
 const getCurrentUser = (req, res, next) => {
-    const id = req.user._id;
-    console.log("hi");
-    User.findById(id)
-        .then((user) => {
-            if (!user) {
-                next(new FoundError("Такого пользователя нет"));
-            }
-            res.status(200).send(user);
-        })
-        .catch(next);
+    req.params.id = req.user._id;
+    getUserById(req, res, next);
 };
 // обновление аватара
 const UpdateAvatar = (req, res, next) => {
