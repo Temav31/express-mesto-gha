@@ -11,6 +11,7 @@ const ServerError = require("../utils/errors/ServerError");
 // регистрация
 const createUser = (req, res, next) => {
     const { name, about, avatar, email, password } = req.body;
+    User.find({ email }).then(() => { return next(new DataError("Некоректные данные")) });
     bcrypt
         .hash(String(password), 10)
         .then((hashedPassword) => {
@@ -24,6 +25,7 @@ const createUser = (req, res, next) => {
                 // console.log("hi");
                 res.send({ data: user });
             });
+            // .catch(() => next(new ServerError()));
         })
         .catch((err) => {
             console.log("hi");
