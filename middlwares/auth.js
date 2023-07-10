@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const SignInError = require('../utils/errors/SignInError');
 // мидлвара
 const auth = (req, res, next) => {
-  const token = req.cookies.jwt;
+  const { token } = req.cookies;
   let payload;
   try {
     if (!token) {

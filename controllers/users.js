@@ -27,7 +27,6 @@ module.exports.createUser = (req, res, next) => {
         password: hashedPassword,
       })
         .then(() => {
-          // console.log('hi');
           res.send({
             data: {
               name,
@@ -38,7 +37,6 @@ module.exports.createUser = (req, res, next) => {
           });
         })
         .catch((err) => {
-          console.log('hi');
           if (err.code === 11000) {
             next(new ConflictError('Такого пользователя не существует'));
           } else if (err.name === 'ValidationError') {
@@ -62,23 +60,22 @@ module.exports.login = (req, res, next) => {
       return bcrypt
         .compare(String(password), user.password)
         .then((isValidUser) => {
-          if (isValidUser) {
-            // создлали jwt
-            const jwt = jsonWebToken.sign(
-              {
-                _id: user._id,
-              },
-              'SECRET',
-              { expiresIn: '7d' },
-            );
-            // прикрепили к куке
-            res.cookie('jwt', jwt, {
-              maxAge: 360000 * 24 * 7,
-              httpOnly: true,
-              sameSite: true,
-            });
-            res.send({ message: 'Авторизация прошла успешно' });
+          if (!isValidUser) {
+            return Promise.reject(new Error('Неправильные почта или пароль'));
           }
+          // создлали jwt
+          const jwt = jsonWebToken.sign(
+            {
+              _id: user._id,
+            },
+            'SECRET',
+            { expiresIn: '7d' },
+          );
+          res.cookie('jwt', jwt, {
+            maxAge: 360000 * 24 * 7,
+            httpOnly: true,
+          });
+          return res.send({ message: 'Авторизация прошла успешно' });
         });
     })
     .catch((err) => {
@@ -94,25 +91,23 @@ module.exports.login = (req, res, next) => {
 module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(next);
+    .catch(() => next(new ServerError()));
 };
 // получение пользователей по id
 module.exports.getUserById = (req, res, next) => {
   // console.log('hi');
   User.findById(req.params.id)
-    .then((user) => {
-      if (!user) {
-        throw new FoundError('Пользователь не найден');
-      }
-      res.send({ data: user });
-    })
+    .orFail(new Error('Not found'))
+    .then((user) => res.send({ data: user }))
     // обработка ошибок
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new DataError('Некоректные данные'));
-        return;
+      } else if (err.message === 'Not found') {
+        next(new FoundError('Некоректные данные'));
+      } else {
+        next(new ServerError());
       }
-      next(err);
     });
 };
 // получить текущего пользователя
@@ -143,14 +138,19 @@ module.exports.UpdateAvatar = (req, res, next) => {
       runValidators: true,
     },
   )
-    .then((user) => res.status(200).send(user))
+    .orFail(new Error('Not Found'))
+    .then((user) => res.status(200).send({ data: user }))
     // обработка ошибок
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new DataError('Некоректные данные'));
       } else if (err.message === 'Not Found') {
-        next(new DataError('Такого пользователя нет'));
-      } else next(err);
+        next(new FoundError('Такого пользователя нет'));
+      } else if (err.name === 'CastError') {
+        next(new DataError('Некоректные данные'));
+      } else {
+        next(new ServerError());
+      }
     });
 };
 // обновление профиля
@@ -164,17 +164,17 @@ module.exports.UpdateProfile = (req, res, next) => {
       runValidators: true,
     },
   )
-    .then((user) => {
-      if (!user) {
-        throw new FoundError('Пользователь не найден');
-      }
-      res.status(200).send(user);
-    })
+    .orFail(new Error('Not Found'))
+    .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new DataError('Некоректные данные'));
       } else if (err.message === 'Not Found') {
-        next(new DataError('Такого пользователя нет'));
-      } else next(err);
+        next(new FoundError('Такого пользователя нет'));
+      } else if (err.name === 'CastError') {
+        next(new DataError('Некоректные данные'));
+      } else {
+        next(new ServerError());
+      }
     });
 };

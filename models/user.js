@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-// const bcrypt = require('bcryptjs');
-// const SignInError = require('../utils/errors/SignInError');
 // создание модели пользователя
 const userSchema = new mongoose.Schema({
   name: {
