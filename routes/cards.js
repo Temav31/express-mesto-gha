@@ -9,15 +9,17 @@ const {
     deleteCard,
     likeCard,
 } = require("../controllers/cards");
-// валидация
-const validation = celebrate({
-    params: Joi.object().keys({
-        cardId: Joi.string().length(24).required().hex(),
-    }),
-});
 // обработка путей
 router.get("/", getCard);
-router.put("/:cardId/likes", validation, likeCard);
+router.put(
+    "/:cardId/likes",
+    celebrate({
+        params: Joi.object().keys({
+            cardId: Joi.string().length(24).required(),
+        }),
+    }),
+    likeCard,
+);
 router.post(
     "/",
     celebrate({
@@ -26,9 +28,25 @@ router.post(
             link: Joi.string().pattern(pattern).required(),
         }),
     }),
-    createCard
+    createCard,
 );
-router.delete("/:cardId/likes", validation, deleteLikeCard);
-router.delete("/:cardId", validation, deleteCard);
+router.delete(
+    "/:cardId/likes",
+    celebrate({
+        params: Joi.object().keys({
+            cardId: Joi.string().length(24).required(),
+        }),
+    }),
+    deleteLikeCard,
+);
+router.delete(
+    "/:cardId",
+    celebrate({
+        params: Joi.object().keys({
+            id: Joi.string().length(24).required(),
+        }),
+    }),
+    deleteCard,
+);
 // экспорт роута
 module.exports = router;
