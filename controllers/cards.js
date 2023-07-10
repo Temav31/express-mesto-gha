@@ -70,7 +70,6 @@ module.exports.deleteLikeCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById(cardId)
-    .orFail(() => new Error("Not found"))
     .then((card) => {
       if (!card) {
         return next(new FoundError("Такого пользователя нет"));

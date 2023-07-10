@@ -39,9 +39,8 @@ module.exports.createUser = (req, res, next) => {
 };
 // аутентификация
 module.exports.login = (req, res, next) => {
-  console.log("hi");
   const { email, password } = req.body;
-  User.findOne({ email })
+  return User.findOne({ email })
     .select("+password")
     .then((user) => {
       if (!user) {
@@ -65,9 +64,7 @@ module.exports.login = (req, res, next) => {
               httpOnly: true,
               sameSite: true,
             });
-            res.send({ data: user.toJSON() });
-          } else {
-            res.send({ message: "Неправильные данные" });
+            return res.send({ message: "Авторизация прошла успешно" });
           }
         });
     })
