@@ -70,7 +70,7 @@ module.exports.login = (req, res, next) => {
           _id: user._id,
         });
     })
-    .catch(() => next(new ServerError()));
+    .catch(next);
 };
 // получение пользователей
 module.exports.getUsers = (req, res, next) => {
