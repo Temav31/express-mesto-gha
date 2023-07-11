@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-// const { errors } = require('celebrate');
+const { errors } = require('celebrate');
 const cookieParser = require('cookie-parser');
 const router = require('./routes/index');
 const errorHandler = require('./middlwares/error');
@@ -15,7 +15,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 // роуты
 app.use(cookieParser());
 app.use(router);
-// app.use(errors());
+app.use(errors());
 app.use(errorHandler);
 // порт
 app.listen(PORT, () => {

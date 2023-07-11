@@ -3,13 +3,13 @@ const Card = require('../models/card');
 const AccessError = require('../utils/errors/AccessError');
 const FoundError = require('../utils/errors/FoundError');
 const DataError = require('../utils/errors/DataError');
-// const ServerError = require('../utils/errors/ServerError');
+const ServerError = require('../utils/errors/ServerError');
 // const { errors } = require('celebrate');
 // получение карточекreqgweg
 module.exports.getCard = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
-    .catch(next);
+    .catch(() => next(new ServerError()));
 };
 // создать карточку
 module.exports.createCard = (req, res, next) => {
@@ -17,12 +17,12 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   // создание карточки и определяет кто пользователь
   Card.create({ name, link, owner })
-    .then((card) => res.status(200).send(card))
+    .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new DataError('Некоректные данные'));
       } else {
-        next(err);
+        next(new ServerError());
       }
     });
 };
@@ -33,17 +33,17 @@ module.exports.likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(new Error('Not found'))
     .then((card) => {
-      if (!card) {
-        throw new FoundError('Пользователь не найден');
-      }
-      res.send({ data: card });
+      res.send(card);
     })
     // обработка ошибок
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === 'Not found') {
+        next(new FoundError('Карточка не найдена'));
+      } else if (err.name === 'CastError') {
         next(new DataError('Некоректные данные'));
-      } else next(err);
+      } else next(new ServerError());
     });
 };
 // убрать лайк карточке
@@ -53,33 +53,45 @@ module.exports.deleteLikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(new Error('Not found'))
     .then((card) => {
-      if (!card) {
-        throw new FoundError('Пользователь не найден');
+      if (card.owner.toString() !== req.user._id) {
+        return Promise.reject(new Error('Нельзя удалить чужую карточку'));
       }
-      res.send({ data: card });
+      return Card.deleteOne(card)
+        .then(() => res.send({ message: 'Карточка удалёна' }));
     })
     // обработка ошибок
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === 'Нельзя удалить чужую карточку') {
+        next(new AccessError('Нельзя удалить чужую карточку'));
+      } else if (err.message === 'Not found') {
+        next(new FoundError('Карточка не найдена'));
+      } else if (err.name === 'CastError') {
         next(new DataError('Некоректные данные'));
-      } else next(err);
+      } else next(new ServerError());
     });
 };
 // удаление карточки
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById(cardId)
+    .orFail(new Error('Not found'))
     .then((card) => {
-      if (!card) {
-        return next(new FoundError('Такого пользователя нет'));
+      if (card.owner.toString() !== req.user._id) {
+        return Promise.reject(new Error('Нельзя удалить чужую карточку'));
       }
-      if (!card.owner.equals(req.user._id)) {
-        return next(new AccessError('Вы не можете удалить не свою карточку'));
-      }
-      return card.remove().then(() => {
+      return Card.deleteOne(card).then(() => {
         res.send({ message: 'Карточка удалена' });
       });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.message === 'Нельзя удалить чужую карточку') {
+        next(new AccessError('Нельзя удалить чужую карточку'));
+      } else if (err.message === 'Not found') {
+        next(new FoundError('Карточка не найдена'));
+      } else if (err.name === 'CastError') {
+        next(new DataError('Некоректные данные'));
+      } else next(new ServerError());
+    });
 };

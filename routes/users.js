@@ -10,6 +10,7 @@ const {
   getCurrentUser,
 } = require('../controllers/users');
 // обработка путей
+router.get('/', getUsers);
 router.get('/me', getCurrentUser);
 router.patch(
   '/me',
@@ -30,7 +31,6 @@ router.patch(
   }),
   UpdateAvatar,
 );
-router.get('/', getUsers);
 router.get(
   '/:id',
   celebrate({

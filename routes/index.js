@@ -14,8 +14,8 @@ router.post(
   '/signup',
   celebrate({
     body: Joi.object().keys({
-      email: Joi.string().required().email(),
-      password: Joi.string().required(),
+      email: Joi.string().required().email().min(3),
+      password: Joi.string().required().min(3),
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
       avatar: Joi.string().pattern(pattern),
@@ -28,8 +28,8 @@ router.post(
   '/signin',
   celebrate({
     body: Joi.object().keys({
-      email: Joi.string().required().email(),
-      password: Joi.string().required(),
+      email: Joi.string().required().email().min(3),
+      password: Joi.string().required().min(3),
     }),
   }),
   login,
@@ -40,7 +40,7 @@ router.use('/users', user);
 router.use('/cards', card);
 router.use(errors());
 // обработка другого пути
-router.use((req, res, next) => {
+router.use('/*', (req, res, next) => {
   next(new FoundError('Страницы не существует'));
 });
 // экспорт

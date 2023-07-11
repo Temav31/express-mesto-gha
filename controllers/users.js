@@ -6,7 +6,7 @@ const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
 // const SignInError = require('../utils/errors/SignInError');
-const ServerError = require('../utils/errors/ServerError');
+// const ServerError = require('../utils/errors/ServerError');
 // регистрация
 module.exports.createUser = (req, res, next) => {
   const {
@@ -43,9 +43,8 @@ module.exports.createUser = (req, res, next) => {
             next(new ConflictError('Такого пользователя не существует'));
           } else if (err.name === 'ValidationError') {
             next(new DataError('Некоректные данные'));
-          } else {
-            next(new ServerError());
           }
+          next(err);
         });
     })
     .catch(next);
@@ -53,43 +52,14 @@ module.exports.createUser = (req, res, next) => {
 // аутентификация
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findOne({ email })
-    .select('+password')
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные данные'));
-      }
-      return bcrypt
-        .compare(String(password), user.password)
-        .then((isValidUser) => {
-          if (isValidUser) {
-            return Promise.reject(new Error('Неправильные данные'));
-          }
-          // создлали jwt
-          const jwt = jsonWebToken.sign(
-            {
-              _id: user._id,
-            },
-            'SECRET',
-            { expiresIn: '7d' },
-          );
-          // прикрепили к куке
-          res.cookie('jwt', jwt, {
-            maxAge: 360000 * 24 * 7,
-            httpOnly: true,
-            sameSite: true,
-          });
-          return res.send({ message: 'Авторизация прошла успешно' });
-        });
+      const token = jsonWebToken.sign({ _id: user._id }, 'some-secret-key', {
+        expiresIn: '7d',
+      });
+      res.send({ token });
     })
-    .catch((err) => {
-      console.log(err.name);
-      if (err.message === 'Неправильные данные') {
-        next(new ConflictError('Неправильные почта или пароль'));
-      } else {
-        next(new ServerError());
-      }
-    });
+    .catch(next);
 };
 // получение пользователей
 module.exports.getUsers = (req, res, next) => {
