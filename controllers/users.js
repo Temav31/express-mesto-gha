@@ -94,10 +94,7 @@ module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.id)
     .orFail(new Error('Not Found'))
     .then((user) => {
-      // if (!user) {
-      //   throw new FoundError('Пользователь не найден');
-      // }
-      res.send(user);
+      res.send({ data: user });
     })
     // обработка ошибок
     .catch((err) => {
@@ -114,10 +111,7 @@ module.exports.getUserById = (req, res, next) => {
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
-      console.log(user);
-      if (!user) {
-        throw new FoundError('Пользователь не найден');
-      }
+      // console.log(user);
       res.send({ data: user });
     })
     .catch((err) => {
