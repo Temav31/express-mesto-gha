@@ -1,6 +1,6 @@
-const router = require("express").Router();
-const { celebrate, Joi } = require("celebrate");
-const { pattern } = require("../utils/constants");
+const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
+const { pattern } = require('../utils/constants');
 //  импорт обработчиков
 const {
   getCard,
@@ -8,45 +8,45 @@ const {
   deleteLikeCard,
   deleteCard,
   likeCard,
-} = require("../controllers/cards");
+} = require('../controllers/cards');
 // обработка путей
-router.get("/", getCard);
+router.get('/', getCard);
 router.put(
-  "/:cardId/likes",
+  '/:cardId/likes',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().length(24).required(),
     }),
   }),
-  likeCard
+  likeCard,
 );
 router.post(
-  "/",
+  '/',
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().min(2).max(30).required(),
       link: Joi.string().pattern(pattern).required(),
     }),
   }),
-  createCard
+  createCard,
 );
 router.delete(
-  "/:cardId/likes",
+  '/:cardId/likes',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().length(24).required(),
     }),
   }),
-  deleteLikeCard
+  deleteLikeCard,
 );
 router.delete(
-  "/:cardId",
+  '/:cardId',
   celebrate({
     params: Joi.object().keys({
       id: Joi.string().length(24).required(),
     }),
   }),
-  deleteCard
+  deleteCard,
 );
 // экспорт роута
 module.exports = router;
