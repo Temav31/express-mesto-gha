@@ -2,14 +2,11 @@ const bcrypt = require('bcryptjs');
 const jsonWebToken = require('jsonwebtoken');
 const User = require('../models/user');
 // ошибки для проверки ошибок
-// const { JWT_SECRET } = require('../utils/constants');
 const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
 const ServerError = require('../utils/errors/ServerError');
 const SignInError = require('../utils/errors/SignInError');
-// const SignInError = require('../utils/errors/SignInError');
-// const ServerError = require('../utils/errors/ServerError');
 // регистрация
 module.exports.createUser = (req, res, next) => {
   const {
@@ -43,7 +40,7 @@ module.exports.createUser = (req, res, next) => {
           if (err.code === 11000) {
             next(new ConflictError('Такого пользователя не существует'));
           } else if (err.name === 'ValidationError') {
-            next(new DataError('Некоректные данные'));
+            next(new DataError('Переданы некоректные данные'));
           }
           next(new ServerError());
         });
@@ -78,7 +75,7 @@ module.exports.login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === 'Неправильные данные') {
-        next(new SignInError('Некоректные данные'));
+        next(new SignInError('Неправильная почта или пароль'));
       }
       next(new ServerError());
     });
@@ -99,9 +96,9 @@ module.exports.getUserById = (req, res, next) => {
     // обработка ошибок
     .catch((err) => {
       if (err.message === 'Not Found') {
-        next(new FoundError('Такого пользователя нет'));
+        next(new FoundError('Пользователь не найден'));
       } else if (err.name === 'CastError') {
-        next(new DataError('Некоректные данные'));
+        next(new DataError('Некоректный идентификатор'));
         return;
       }
       next(new ServerError());
@@ -110,15 +107,15 @@ module.exports.getUserById = (req, res, next) => {
 // получить текущего пользователя
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
+    .orFail(new Error('Not Found'))
     .then((user) => {
-      // console.log(user);
       res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new DataError('Некоректные данные'));
+        next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
-        next(new FoundError('Такого пользователя нет'));
+        next(new FoundError('Пользователь не найден'));
       } else next(new ServerError());
     });
 };
@@ -130,18 +127,17 @@ module.exports.UpdateAvatar = (req, res, next) => {
     { avatar },
     { new: true, runValidators: true },
   )
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((user) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      console.log('err');
       if (err.name === 'CastError') {
         next(new FoundError('Некоректный идентификатор'));
       } else if (err.name === 'ValidationError') {
         next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
-        next(new DataError('Такого пользователя нет'));
+        next(new DataError('Пользователь не найден'));
       } else next(new ServerError());
     });
 };
@@ -156,18 +152,17 @@ module.exports.UpdateProfile = (req, res, next) => {
       runValidators: true,
     },
   )
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((err) => {
-      console.log('err');
       if (err.name === 'CastError') {
         next(new FoundError('Некоректный идентификатор'));
       } else if (err.name === 'ValidationError') {
         next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
-        next(new DataError('Такого пользователя нет'));
+        next(new DataError('Пользователь не найден'));
       } else {
         next(new ServerError());
       }

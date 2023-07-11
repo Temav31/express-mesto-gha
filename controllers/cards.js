@@ -4,7 +4,6 @@ const AccessError = require('../utils/errors/AccessError');
 const FoundError = require('../utils/errors/FoundError');
 const DataError = require('../utils/errors/DataError');
 const ServerError = require('../utils/errors/ServerError');
-// const { errors } = require('celebrate');
 // получение карточекreqgweg
 module.exports.getCard = (req, res, next) => {
   Card.find({})
@@ -28,22 +27,21 @@ module.exports.createCard = (req, res, next) => {
 };
 // поставить лайк карточке
 module.exports.likeCard = (req, res, next) => {
-  console.log('hi');
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((card) => {
       res.send(card);
     })
     // обработка ошибок
     .catch((err) => {
-      if (err.message === 'Not found') {
-        next(new FoundError('Вашего лайка нет'));
+      if (err.message === 'Not Found') {
+        next(new FoundError('Карточки не существует'));
       } else if (err.name === 'CastError') {
-        next(new DataError('Некоректные данные'));
+        next(new DataError('Некоректные данные карточки'));
       } else next(new ServerError());
     });
 };
@@ -54,14 +52,14 @@ module.exports.deleteLikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((card) => res.send(card))
     // обработка ошибок
     .catch((err) => {
-      if (err.message === 'Not found') {
-        next(new FoundError('Вашего лайка нет'));
+      if (err.message === 'Not Found') {
+        next(new FoundError('Карточки не существует'));
       } else if (err.name === 'CastError') {
-        next(new DataError('Некоректные данные'));
+        next(new DataError('Некоректные данные карточки'));
       } else next(new ServerError());
     });
 };
@@ -69,7 +67,7 @@ module.exports.deleteLikeCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   // const { cardId } = req.params;
   Card.findById(req.params.cardId)
-    .orFail(new Error('Not found'))
+    .orFail(new Error('Not Found'))
     .then((card) => {
       if (card.owner.toString() !== req.user._id) {
         return Promise.reject(new Error('Нельзя удалить чужую карточку'));
@@ -81,10 +79,10 @@ module.exports.deleteCard = (req, res, next) => {
     .catch((err) => {
       if (err.message === 'Нельзя удалить чужую карточку') {
         next(new AccessError('Нельзя удалить чужую карточку'));
-      } else if (err.message === 'Not found') {
+      } else if (err.message === 'Not Found') {
         next(new FoundError('Карточка не найдена'));
       } else if (err.name === 'CastError') {
-        next(new DataError('Некоректные данные'));
+        next(new DataError('Некоректные данные карточки'));
       } else next(new ServerError());
     });
 };

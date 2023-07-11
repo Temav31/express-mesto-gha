@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-// const avatarPattern = require('../utils/constants');
 // создание модели карточки
 const cardSchema = new mongoose.Schema({
   name: {
