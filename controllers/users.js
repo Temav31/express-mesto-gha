@@ -139,11 +139,16 @@ module.exports.UpdateAvatar = (req, res, next) => {
     { image },
     { new: true, runValidators: true },
   )
-    .then((user) => res.status(200).send(user))
-    // обработка ошибок
+    .orFail(new Error('Not found'))
+    .then((user) => {
+      res.status(200).send(user);
+    })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new DataError('Некоректные данные'));
+      console.log('err');
+      if (err.name === 'CastError') {
+        next(new DataError('Некоректный идентификатор'));
+      } else if (err.name === 'ValidationError') {
+        next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
         next(new DataError('Такого пользователя нет'));
       } else next(err);
@@ -160,15 +165,16 @@ module.exports.UpdateProfile = (req, res, next) => {
       runValidators: true,
     },
   )
+    .orFail(new Error('Not found'))
     .then((user) => {
-      if (!user) {
-        throw new FoundError('Пользователь не найден');
-      }
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new DataError('Некоректные данные'));
+      console.log('err');
+      if (err.name === 'CastError') {
+        next(new DataError('Некоректный идентификатор'));
+      } else if (err.name === 'ValidationError') {
+        next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
         next(new DataError('Такого пользователя нет'));
       } else next(err);
