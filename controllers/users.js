@@ -6,7 +6,6 @@ const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
 const ServerError = require('../utils/errors/ServerError');
-// const SignInError = require('../utils/errors/SignInError');
 // регистрация
 module.exports.createUser = (req, res, next) => {
   const {
