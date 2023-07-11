@@ -6,7 +6,7 @@ const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
 const ServerError = require('../utils/errors/ServerError');
-const SignInError = require('../utils/errors/SignInError');
+// const SignInError = require('../utils/errors/SignInError');
 // регистрация
 module.exports.createUser = (req, res, next) => {
   const {
@@ -41,8 +41,9 @@ module.exports.createUser = (req, res, next) => {
             next(new ConflictError('Такого пользователя не существует'));
           } else if (err.name === 'ValidationError') {
             next(new DataError('Переданы некоректные данные'));
+          } else {
+            next(new ServerError());
           }
-          next(new ServerError());
         });
     })
     .catch(next);
@@ -50,35 +51,26 @@ module.exports.createUser = (req, res, next) => {
 // аутентификация
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findOne({ email })
-    .select('+password')
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные данные'));
-      }
-      return bcrypt.compare(password, user.password)
-        .then((data) => {
-          if (!data) {
-            return Promise.reject(new Error('Неправильные данные'));
-          }
-          const token = jsonWebToken.sign(
-            { _id: user._id },
-            'SECRET',
-            { expiresIn: '7d' },
-          );
-          res.cookie('token', token, {
-            maxAge: 3600000 * 24 * 7,
-            httpOnly: true,
-          });
-          return res.send({ message: 'Авториизация успешно пройдена' });
+      const token = jsonWebToken.sign(
+        { _id: user._id },
+        'SECRET',
+        { expiresIn: '7d' },
+      );
+      res.cookie('token', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      })
+        .send({
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+          _id: user._id,
         });
     })
-    .catch((err) => {
-      if (err.message === 'Неправильные данные') {
-        next(new SignInError('Неправильная почта или пароль'));
-      }
-      next(new ServerError());
-    });
+    .catch(() => next(new ServerError()));
 };
 // получение пользователей
 module.exports.getUsers = (req, res, next) => {
@@ -99,9 +91,10 @@ module.exports.getUserById = (req, res, next) => {
         next(new FoundError('Пользователь не найден'));
       } else if (err.name === 'CastError') {
         next(new DataError('Некоректный идентификатор'));
-        return;
+        // return;
+      } else {
+        next(new ServerError());
       }
-      next(new ServerError());
     });
 };
 // получить текущего пользователя
@@ -116,7 +109,9 @@ module.exports.getCurrentUser = (req, res, next) => {
         next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
         next(new FoundError('Пользователь не найден'));
-      } else next(new ServerError());
+      } else {
+        next(new ServerError());
+      }
     });
 };
 // обновление аватара
@@ -138,7 +133,9 @@ module.exports.UpdateAvatar = (req, res, next) => {
         next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
         next(new DataError('Пользователь не найден'));
-      } else next(new ServerError());
+      } else {
+        next(new ServerError());
+      }
     });
 };
 // обновление профиля

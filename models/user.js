@@ -7,14 +7,12 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     default: 'Жак-Ив Кусто',
-    required: true,
     minlength: 2,
     maxlength: 30,
   },
   about: {
     type: String,
     default: 'Исследователь',
-    required: true,
     minlength: 2,
     maxlength: 30,
   },
@@ -25,7 +23,6 @@ const userSchema = new mongoose.Schema({
       validator: (v) => validator.isURL(v),
       message: 'Некорректный URL',
     },
-    required: true,
   },
   email: {
     type: String,
@@ -48,14 +45,15 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     .select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new SignInError('Неправильные данные'));
+        throw new SignInError('Неправильные данные');
       }
-      return bcrypt.compare(password, user.password).then((matched) => {
-        if (!matched) {
-          return Promise.reject(new SignInError('Неправильные данные'));
-        }
-        return user;
-      });
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            throw new SignInError('Неправильные данные');
+          }
+          return user;
+        });
     });
 };
 // экспорт
