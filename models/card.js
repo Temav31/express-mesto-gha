@@ -1,36 +1,36 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
-// const avatarPattern = require('../utils/constants');
+const mongoose = require("mongoose");
+const validator = require("validator");
+const avatarPattern = require("../utils/constants");
 // создание модели карточки
 const cardSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    minlength: 2,
-    maxlength: 30,
-  },
-  link: {
-    type: String,
-    required: true,
-    validate: {
-      validator: (url) => validator.isURL(url),
-      message: 'Неправильная ссылка',
+    name: {
+        type: String,
+        required: true,
+        minlength: 2,
+        maxlength: 30,
     },
-  },
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
-    required: true,
-  },
-  likes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
-    default: [],
-  }],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+    link: {
+        type: String,
+        required: true,
+        validate: {
+            validator: (url) => validator.isURL(url),
+            message: "Неправильная ссылка",
+        },
+    },
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        required: true,
+    },
+    likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        default: [],
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
 });
 // экспорт
-module.exports = mongoose.model('card', cardSchema);
+module.exports = mongoose.model("card", cardSchema);

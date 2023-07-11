@@ -1,17 +1,17 @@
-const router = require('express').Router();
-const { celebrate, Joi, errors } = require('celebrate');
-const FoundError = require('../utils/errors/FoundError');
-// const AccessError = require('../utils/errors/AccessError');
-const { pattern } = require('../utils/constants');
+const router = require("express").Router();
+const { celebrate, Joi, errors } = require("celebrate");
+const FoundError = require("../utils/errors/FoundError");
+// const AccessError = require("../utils/errors/AccessError");
+const { pattern } = require("../utils/constants");
 // импорт из файла
-const user = require('./users');
-const card = require('./cards');
-const { createUser, login } = require('../controllers/users');
-const auth = require('../middlwares/auth');
-// const FoundError = require('../utils/errors/FoundError');
+const user = require("./users");
+const card = require("./cards");
+const { createUser, login } = require("../controllers/users");
+const auth = require("../middlwares/auth");
+// const FoundError = require("../utils/errors/FoundError");
 // регистрация
 router.post(
-  '/signup',
+  "/signup",
   celebrate({
     body: Joi.object().keys({
       email: Joi.string().required().email(),
@@ -21,27 +21,27 @@ router.post(
       avatar: Joi.string().pattern(pattern),
     }),
   }),
-  createUser,
+  createUser
 );
 // аутенфикация
 router.post(
-  '/signin',
+  "/signin",
   celebrate({
     body: Joi.object().keys({
       email: Joi.string().required().email(),
       password: Joi.string().required(),
     }),
   }),
-  login,
+  login
 );
 router.use(auth);
 // обозначение роутов
-router.use('/users', user);
-router.use('/cards', card);
+router.use("/users", user);
+router.use("/cards", card);
 router.use(errors());
 // обработка другого пути
 router.use((req, res, next) => {
-  next(new FoundError('Страницы не существует'));
+  next(new FoundError("Страницы не существует"));
 });
 // экспорт
 module.exports = router;
