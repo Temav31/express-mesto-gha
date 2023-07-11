@@ -114,7 +114,7 @@ module.exports.getCurrentUser = (req, res, next) => {
       if (!user) {
         throw new FoundError('Пользователь не найден');
       }
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -134,7 +134,7 @@ module.exports.UpdateAvatar = (req, res, next) => {
   )
     .orFail(new Error('Not found'))
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       console.log('err');
