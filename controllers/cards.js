@@ -5,7 +5,7 @@ const FoundError = require("../utils/errors/FoundError");
 const DataError = require("../utils/errors/DataError");
 const ServerError = require("../utils/errors/ServerError");
 const { errors } = require("celebrate");
-// получение карточек
+// получение карточекreqgweg
 module.exports.getCard = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
