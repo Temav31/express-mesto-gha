@@ -39,7 +39,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    // не возвращать пароль
     select: false,
   },
 });
@@ -48,15 +47,14 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     .select('+password')
     .then((user) => {
       if (!user) {
-        throw new SignInError('Неправильные данные');
+        return Promise.reject(new SignInError('Неправильные данные'));
       }
-      return bcrypt.compare(password, user.password)
-        .then((data) => {
-          if (!data) {
-            throw new SignInError('Неправильные данные');
-          }
-          return user;
-        });
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          return Promise.reject(new SignInError('Неправильные данные'));
+        }
+        return user;
+      });
     });
 };
 // экспорт

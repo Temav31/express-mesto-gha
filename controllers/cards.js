@@ -3,7 +3,8 @@ const Card = require('../models/card');
 const AccessError = require('../utils/errors/AccessError');
 const FoundError = require('../utils/errors/FoundError');
 const DataError = require('../utils/errors/DataError');
-// 403 ForbiddenError 404 другая
+// const ServerError = require('../utils/errors/ServerError');
+// const { errors } = require('celebrate');
 // получение карточек
 module.exports.getCard = (req, res, next) => {
   Card.find({})
@@ -16,10 +17,10 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   // создание карточки и определяет кто пользователь
   Card.create({ name, link, owner })
-    .then((card) => res.status(201).send({ data: card }))
+    .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new DataError('Неправильные данные'));
+        next(new DataError('Некоректные данные'));
       } else {
         next(err);
       }
@@ -34,12 +35,16 @@ module.exports.likeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        return next(new FoundError('Пользователь не найден'));
+        throw new FoundError('Пользователь не найден');
       }
-      return res.status(200).send({ data: card });
+      res.send({ data: card });
     })
     // обработка ошибок
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new DataError('Некоректные данные'));
+      } else next(err);
+    });
 };
 // убрать лайк карточке
 module.exports.deleteLikeCard = (req, res, next) => {
@@ -50,12 +55,16 @@ module.exports.deleteLikeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        return next(new FoundError('Пользователь не найден'));
+        throw new FoundError('Пользователь не найден');
       }
-      return res.status(200).send({ data: card });
+      res.send({ data: card });
     })
     // обработка ошибок
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new DataError('Некоректные данные'));
+      } else next(err);
+    });
 };
 // удаление карточки
 module.exports.deleteCard = (req, res, next) => {
@@ -63,15 +72,14 @@ module.exports.deleteCard = (req, res, next) => {
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        throw new FoundError('Такого пользователя нет');
+        return next(new FoundError('Такого пользователя нет'));
       }
-      if (card.owner.valueOf() !== req.user._id) {
+      if (!card.owner.equals(req.user._id)) {
         return next(new AccessError('Вы не можете удалить не свою карточку'));
       }
-      return Card.findByIdAndRemove(cardId)
-        .then((data) => {
-          res.status(200).send(data);
-        });
+      return card.remove().then(() => {
+        res.send({ message: 'Карточка удалена' });
+      });
     })
     .catch(next);
 };

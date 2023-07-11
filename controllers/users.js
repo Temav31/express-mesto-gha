@@ -5,9 +5,8 @@ const User = require('../models/user');
 const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
-// const ServerError = require('../utils/errors/ServerError');
-const { JWT_SECRET } = require('../utils/constants');
-// const { errors } = require('celebrate');
+// const SignInError = require('../utils/errors/SignInError');
+const ServerError = require('../utils/errors/ServerError');
 // регистрация
 module.exports.createUser = (req, res, next) => {
   const {
@@ -26,57 +25,46 @@ module.exports.createUser = (req, res, next) => {
         avatar,
         email,
         password: hashedPassword,
-      });
+      })
+        .then(() => {
+          // console.log('hi');
+          res.send({
+            data: {
+              name,
+              about,
+              avatar,
+              email,
+            },
+          });
+        })
+        .catch((err) => {
+          console.log('hi');
+          if (err.code === 11000) {
+            next(new ConflictError('Такого пользователя не существует'));
+          } else if (err.name === 'ValidationError') {
+            next(new DataError('Некоректные данные'));
+          } else {
+            next(new ServerError());
+          }
+        });
     })
-    .then((user) => {
-      if (!user) {
-        return next(new FoundError('Пользователя не существует'));
-      }
-      return res.send({
-        data: {
-          name,
-          about,
-          avatar,
-          email,
-        },
-      });
-    })
-    .catch((err) => {
-      if (err.code === 11000) {
-        next(new ConflictError('Такого пользователя не существует'));
-      } else if (err.name === 'ValidationError') {
-        next(new DataError('Некоректные данные'));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
 // аутентификация
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
-    // .select('+password')
     .then((user) => {
-      // создлали jwt
       const jwt = jsonWebToken.sign(
         {
           _id: user._id,
         },
-        JWT_SECRET,
+        'SECRET',
         { expiresIn: '7d' },
       );
-      res.cookie('jwt', jwt, {
-        maxAge: 360000 * 24 * 7,
-        httpOnly: true,
-      })
-        .send({
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-          email: user.email,
-          _id: user._id,
-        });
+      res.send({ jwt });
     })
+
     .catch(next);
 };
 // получение пользователей
@@ -86,33 +74,40 @@ module.exports.getUsers = (req, res, next) => {
     .catch(next);
 };
 // получение пользователей по id
-module.exports.getUserById = async (req, res, next) => {
+module.exports.getUserById = (req, res, next) => {
   // console.log('hi');
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      throw new FoundError('Такого пользователя не существует');
-    }
-    res.send({ data: user });
+  User.findById(req.params.id)
+    .then((user) => {
+      if (!user) {
+        throw new FoundError('Пользователь не найден');
+      }
+      res.send({ data: user });
+    })
     // обработка ошибок
-  } catch (err) {
-    if (err.name === 'CastError') {
-      next(new DataError('Некоректные данные'));
-    } else {
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new DataError('Некоректные данные'));
+        return;
+      }
       next(err);
-    }
-  }
+    });
 };
 // получить текущего пользователя
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        throw new FoundError('Такого пользователя не существует');
+        throw new FoundError('Пользователь не найден');
       }
-      res.send(user);
+      res.status(200).send(user);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new DataError('Некоректные данные'));
+      } else if (err.message === 'Not Found') {
+        next(new FoundError('Такого пользователя нет'));
+      } else next(err);
+    });
 };
 // обновление аватара
 module.exports.UpdateAvatar = (req, res, next) => {
@@ -120,6 +115,24 @@ module.exports.UpdateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     { image },
+    { new: true, runValidators: true },
+  )
+    .then((user) => res.status(200).send(user))
+    // обработка ошибок
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new DataError('Некоректные данные'));
+      } else if (err.message === 'Not Found') {
+        next(new DataError('Такого пользователя нет'));
+      } else next(err);
+    });
+};
+// обновление профиля
+module.exports.UpdateProfile = (req, res, next) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
     {
       new: true,
       runValidators: true,
@@ -127,39 +140,15 @@ module.exports.UpdateAvatar = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new FoundError('Такого пользователя не существует');
-      } else { res.send(user); }
+        throw new FoundError('Пользователь не найден');
+      }
+      res.status(200).send(user);
     })
-    // обработка ошибок
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new DataError('Некоректные данные'));
-      } else {
-        next(err);
-      }
+      } else if (err.message === 'Not Found') {
+        next(new DataError('Такого пользователя нет'));
+      } else next(err);
     });
-};
-// обновление профиля
-module.exports.UpdateProfile = async (req, res, next) => {
-  const { name, about } = req.body;
-  try {
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { name, about },
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-    if (!user) {
-      throw new FoundError('Такого пользователя не существует');
-    }
-    res.send({ data: user });
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      next(new DataError('Некоректные данные'));
-    } else {
-      next(err);
-    }
-  }
 };

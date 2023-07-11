@@ -2,12 +2,13 @@ const router = require('express').Router();
 const { celebrate, Joi, errors } = require('celebrate');
 const FoundError = require('../utils/errors/FoundError');
 // const AccessError = require('../utils/errors/AccessError');
-const { validationUrl } = require('../utils/constants');
+const { pattern } = require('../utils/constants');
 // импорт из файла
 const user = require('./users');
 const card = require('./cards');
 const { createUser, login } = require('../controllers/users');
 const auth = require('../middlwares/auth');
+// const FoundError = require('../utils/errors/FoundError');
 // регистрация
 router.post(
   '/signup',
@@ -17,7 +18,7 @@ router.post(
       password: Joi.string().required(),
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
-      avatar: Joi.string().custom(validationUrl),
+      avatar: Joi.string().pattern(pattern),
     }),
   }),
   createUser,
