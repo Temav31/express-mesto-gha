@@ -7,6 +7,7 @@ const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
 const ServerError = require('../utils/errors/ServerError');
+const SignInError = require('../utils/errors/SignInError');
 // const SignInError = require('../utils/errors/SignInError');
 // const ServerError = require('../utils/errors/ServerError');
 // регистрация
@@ -53,16 +54,17 @@ module.exports.createUser = (req, res, next) => {
 // аутентификация
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
+  console.log('err');
   return User.findOne({ email })
     .select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные данные'));
       }
-      // console.log(user);
+      console.log(user);
       return bcrypt.compare(password, user.password)
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           if (!data) {
             return Promise.reject(new Error('Неправильные данные'));
           }
@@ -79,9 +81,9 @@ module.exports.login = (req, res, next) => {
         });
     })
     .catch((err) => {
-      console.log('hi');
+      console.log(err);
       if (err.message === 'Неправильные данные') {
-        next(new DataError('Некоректные данные'));
+        next(new SignInError('Некоректные данные'));
       }
       next(new ServerError());
     });
