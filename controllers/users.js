@@ -124,10 +124,10 @@ module.exports.getCurrentUser = (req, res, next) => {
 };
 // обновление аватара
 module.exports.UpdateAvatar = (req, res, next) => {
-  const { image } = req.body;
+  const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
-    { image },
+    { avatar },
     { new: true, runValidators: true },
   )
     .orFail(new Error('Not found'))
