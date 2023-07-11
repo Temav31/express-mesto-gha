@@ -92,15 +92,18 @@ module.exports.getUsers = (req, res, next) => {
 // получение пользователей по id
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.id)
+    .orFail(new Error('Not Found'))
     .then((user) => {
-      if (!user) {
-        throw new FoundError('Пользователь не найден');
-      }
+      // if (!user) {
+      //   throw new FoundError('Пользователь не найден');
+      // }
       res.send(user);
     })
     // обработка ошибок
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === 'Not Found') {
+        next(new FoundError('Такого пользователя нет'));
+      } else if (err.name === 'CastError') {
         next(new DataError('Некоректные данные'));
         return;
       }
@@ -111,10 +114,11 @@ module.exports.getUserById = (req, res, next) => {
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
+      console.log(user);
       if (!user) {
         throw new FoundError('Пользователь не найден');
       }
-      res.send(user);
+      res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -134,7 +138,7 @@ module.exports.UpdateAvatar = (req, res, next) => {
   )
     .orFail(new Error('Not found'))
     .then((user) => {
-      res.send(user);
+      res.send({ data: user });
     })
     .catch((err) => {
       console.log('err');
