@@ -3,5 +3,5 @@ const avatarPattern = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA
 // экспорт
 module.exports = {
   pattern,
-  // avatarPattern,
+  avatarPattern,
 };
