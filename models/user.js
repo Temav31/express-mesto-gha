@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
+const SignInError = require('../utils/errors/SignInError');
 // создание модели пользователя
 const userSchema = new mongoose.Schema({
   name: {
@@ -37,13 +39,25 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    // не возвращать пароль
     select: false,
   },
 });
-// userSchema.methods.toJSON = function () {
-//   const user = this.toObject();
-//   delete user.password;
-//   return user;
-// };
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email })
+    .select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new SignInError('Неправильные данные');
+      }
+      return bcrypt.compare(password, user.password)
+        .then((data) => {
+          if (!data) {
+            throw new SignInError('Неправильные данные');
+          }
+          return user;
+        });
+    });
+};
 // экспорт
 module.exports = mongoose.model('user', userSchema);

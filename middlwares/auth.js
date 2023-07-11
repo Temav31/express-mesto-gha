@@ -1,16 +1,18 @@
 const jwt = require('jsonwebtoken');
 const SignInError = require('../utils/errors/SignInError');
+
+const { JWT_SECRET } = require('../utils/constants');
 // мидлвара
 const auth = (req, res, next) => {
   const { token } = req.cookies;
   let payload;
+  if (!token) {
+    return next(new SignInError('Неправильная авторизация'));
+  }
   try {
-    if (!token) {
-      next(new SignInError('Неправильная авторизация'));
-    }
-    payload = jwt.verify(token, 'SECRET');
+    payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    next(new SignInError('Неправильная авторизация'));
+    return next(new SignInError('Неправильная авторизация'));
   }
   req.user = payload;
   return next();

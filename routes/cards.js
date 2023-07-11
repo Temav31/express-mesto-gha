@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
-const { pattern } = require('../utils/constants');
+// const { pattern } = require('../utils/constants');
+const { validationUrl } = require('../utils/constants');
 //  импорт обработчиков
 const {
   getCard,
@@ -25,7 +26,7 @@ router.post(
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().min(2).max(30).required(),
-      link: Joi.string().pattern(pattern).required(),
+      link: Joi.string().custom(validationUrl).required(),
     }),
   }),
   createCard,

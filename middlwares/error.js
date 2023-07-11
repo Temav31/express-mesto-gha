@@ -1,8 +1,5 @@
-module.exports = (err, req, res, next) => {
-  if (err.statusCode) {
-    res.status(err.statusCode).send({ massage: err.message });
-  } else {
-    res.status(500).send({ massage: 'Ошибка сервера' });
-    next();
-  }
-};
+const errorHandler = ((err, req, res, next) => {
+  res.status(err.statusCode ? err.statusCode : 500).send({ message: err.message });
+  next();
+});
+module.exports = errorHandler;
