@@ -40,7 +40,6 @@ module.exports.createUser = (req, res, next) => {
           });
         })
         .catch((err) => {
-          console.log('hi');
           if (err.code === 11000) {
             next(new ConflictError('Такого пользователя не существует'));
           } else if (err.name === 'ValidationError') {
@@ -54,17 +53,14 @@ module.exports.createUser = (req, res, next) => {
 // аутентификация
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  console.log('err');
   return User.findOne({ email })
     .select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные данные'));
       }
-      console.log(user);
       return bcrypt.compare(password, user.password)
         .then((data) => {
-          // console.log(data);
           if (!data) {
             return Promise.reject(new Error('Неправильные данные'));
           }
@@ -81,7 +77,6 @@ module.exports.login = (req, res, next) => {
         });
     })
     .catch((err) => {
-      console.log(err);
       if (err.message === 'Неправильные данные') {
         next(new SignInError('Некоректные данные'));
       }
@@ -90,14 +85,12 @@ module.exports.login = (req, res, next) => {
 };
 // получение пользователей
 module.exports.getUsers = (req, res, next) => {
-  console.log('hi');
   User.find({})
     .then((users) => res.send(users))
     .catch(() => next(new ServerError()));
 };
 // получение пользователей по id
 module.exports.getUserById = (req, res, next) => {
-  console.log('hi');
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
@@ -128,7 +121,7 @@ module.exports.getCurrentUser = (req, res, next) => {
         next(new DataError('Некоректные данные'));
       } else if (err.message === 'Not Found') {
         next(new FoundError('Такого пользователя нет'));
-      } else next(err);
+      } else next(new ServerError());
     });
 };
 // обновление аватара
@@ -146,12 +139,12 @@ module.exports.UpdateAvatar = (req, res, next) => {
     .catch((err) => {
       console.log('err');
       if (err.name === 'CastError') {
-        next(new DataError('Некоректный идентификатор'));
+        next(new FoundError('Некоректный идентификатор'));
       } else if (err.name === 'ValidationError') {
         next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
         next(new DataError('Такого пользователя нет'));
-      } else next(err);
+      } else next(new ServerError());
     });
 };
 // обновление профиля
@@ -172,11 +165,13 @@ module.exports.UpdateProfile = (req, res, next) => {
     .catch((err) => {
       console.log('err');
       if (err.name === 'CastError') {
-        next(new DataError('Некоректный идентификатор'));
+        next(new FoundError('Некоректный идентификатор'));
       } else if (err.name === 'ValidationError') {
         next(new DataError('Переданы некоректные данные'));
       } else if (err.message === 'Not Found') {
         next(new DataError('Такого пользователя нет'));
-      } else next(err);
+      } else {
+        next(new ServerError());
+      }
     });
 };
