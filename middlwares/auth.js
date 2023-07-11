@@ -9,7 +9,7 @@ const auth = (req, res, next) => {
     if (!token) {
       next(new SignInError('Неправильная авторизация'));
     }
-    payload = jwt.verify(token, JWT_SECRET);
+    payload = jwt.verify(token, 'SECRET');
   } catch (err) {
     next(new SignInError('Неправильная авторизация'));
   }

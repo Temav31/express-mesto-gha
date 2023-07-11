@@ -52,14 +52,16 @@ module.exports.login = (req, res, next) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные данные'));
       }
+      // console.log(user);
       return bcrypt.compare(password, user.password)
         .then((data) => {
+          console.log(data);
           if (!data) {
             return Promise.reject(new Error('Неправильные данные'));
           }
           const token = jsonWebToken.sign(
             { _id: user._id },
-            JWT_SECRET,
+            'SECRET',
             { expiresIn: '7d' },
           );
           res.cookie('token', token, {
@@ -70,6 +72,7 @@ module.exports.login = (req, res, next) => {
         });
     })
     .catch((err) => {
+      console.log('hi');
       if (err.message === 'Неправильные данные') {
         next(new DataError('Некоректные данные'));
       }
