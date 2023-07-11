@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jsonWebToken = require('jsonwebtoken');
 const User = require('../models/user');
 // ошибки для проверки ошибок
-const { JWT_SECRET } = require('../utils/constants');
+// const { JWT_SECRET } = require('../utils/constants');
 const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
@@ -28,8 +28,15 @@ module.exports.createUser = (req, res, next) => {
         email,
         password: hashedPassword,
       })
-        .then((user) => {
-          res.send({ data: user });
+        .then(() => {
+          res.send({
+            data: {
+              name,
+              about,
+              avatar,
+              email,
+            },
+          });
         })
         .catch((err) => {
           console.log('hi');

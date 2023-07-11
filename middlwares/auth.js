@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const SignInError = require('../utils/errors/SignInError');
-const { JWT_SECRET } = require('../utils/constants');
+// const { JWT_SECRET } = require('../utils/constants');
 // мидлвара
 const auth = (req, res, next) => {
   const { token } = req.cookies;
