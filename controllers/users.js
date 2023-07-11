@@ -2,9 +2,11 @@ const bcrypt = require('bcryptjs');
 const jsonWebToken = require('jsonwebtoken');
 const User = require('../models/user');
 // ошибки для проверки ошибок
+const { JWT_SECRET } = require('../utils/constants');
 const FoundError = require('../utils/errors/FoundError');
 const ConflictError = require('../utils/errors/ConflictError');
 const DataError = require('../utils/errors/DataError');
+const ServerError = require('../utils/errors/ServerError');
 // const SignInError = require('../utils/errors/SignInError');
 // const ServerError = require('../utils/errors/ServerError');
 // регистрация
@@ -26,16 +28,8 @@ module.exports.createUser = (req, res, next) => {
         email,
         password: hashedPassword,
       })
-        .then(() => {
-          // console.log('hi');
-          res.send({
-            data: {
-              name,
-              about,
-              avatar,
-              email,
-            },
-          });
+        .then((user) => {
+          res.send({ data: user });
         })
         .catch((err) => {
           console.log('hi');
@@ -44,7 +38,7 @@ module.exports.createUser = (req, res, next) => {
           } else if (err.name === 'ValidationError') {
             next(new DataError('Некоректные данные'));
           }
-          next(err);
+          next(new ServerError());
         });
     })
     .catch(next);
@@ -52,30 +46,52 @@ module.exports.createUser = (req, res, next) => {
 // аутентификация
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  return User.findOne({ email })
+    .select('+password')
     .then((user) => {
-      const token = jsonWebToken.sign({ _id: user._id }, 'some-secret-key', {
-        expiresIn: '7d',
-      });
-      res.send({ token });
+      if (!user) {
+        return Promise.reject(new Error('Неправильные данные'));
+      }
+      return bcrypt.compare(password, user.password)
+        .then((data) => {
+          if (!data) {
+            return Promise.reject(new Error('Неправильные данные'));
+          }
+          const token = jsonWebToken.sign(
+            { _id: user._id },
+            JWT_SECRET,
+            { expiresIn: '7d' },
+          );
+          res.cookie('token', token, {
+            maxAge: 3600000 * 24 * 7,
+            httpOnly: true,
+          });
+          return res.send({ message: 'Авториизация успешно пройдена' });
+        });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.message === 'Неправильные данные') {
+        next(new DataError('Некоректные данные'));
+      }
+      next(new ServerError());
+    });
 };
 // получение пользователей
 module.exports.getUsers = (req, res, next) => {
+  console.log('hi');
   User.find({})
     .then((users) => res.send(users))
-    .catch(next);
+    .catch(() => next(new ServerError()));
 };
 // получение пользователей по id
 module.exports.getUserById = (req, res, next) => {
-  // console.log('hi');
+  console.log('hi');
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
         throw new FoundError('Пользователь не найден');
       }
-      res.send({ data: user });
+      res.send(user);
     })
     // обработка ошибок
     .catch((err) => {
@@ -83,7 +99,7 @@ module.exports.getUserById = (req, res, next) => {
         next(new DataError('Некоректные данные'));
         return;
       }
-      next(err);
+      next(new ServerError());
     });
 };
 // получить текущего пользователя
